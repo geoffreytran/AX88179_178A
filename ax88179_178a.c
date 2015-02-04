@@ -1,5 +1,6 @@
 /*
  * ASIX AX88179 based USB 3.0 Ethernet Devices
+ * Copyright (C) 2015 Geoffrey Tran <geoffrey.tran@gmail.com>
  * Copyright (C) 2003-2005 David Hollis <dhollis@davehollis.com>
  * Copyright (C) 2005 Phil Chang <pchang23@sbcglobal.net>
  * Copyright (c) 2002-2003 TiVo Inc.
@@ -246,9 +247,9 @@ static void ax88179_async_cmd_callback(struct urb *urb)
 		       urb->status);
 
 	kfree(asyncdata->req);
-	kfree(asyncdata);	
+	kfree(asyncdata);
 	usb_free_urb(urb);
-	
+
 }
 
 static void
@@ -296,7 +297,7 @@ ax88179_write_cmd_async(struct usbnet *dev, u8 cmd, u16 value, u16 index,
 	}
 
 	asyncdata->req = req;
-	
+
 	if (size == 2) {
 		asyncdata->rxctl = *((u16 *)data);
 		cpu_to_le16s(&asyncdata->rxctl);
@@ -419,7 +420,7 @@ static int ax88179_suspend(struct usb_interface *intf,
 static void ax88179_EEE_setting(struct usbnet *dev)
 {
 	u16 tmp16;
-	
+
 	if (bEEE) {
 		// Enable EEE
 		tmp16 = 0x07;
@@ -1317,15 +1318,15 @@ static int ax88179_check_ether_addr(struct usbnet *dev)
 		eth_hw_addr_random(dev->net);
 #else
 		dev->net->addr_assign_type |= NET_ADDR_RANDOM;
-		random_ether_addr(dev->net->dev_addr); 
+		random_ether_addr(dev->net->dev_addr);
 #endif
 		*tmp = 0;
 		*(tmp + 1) = 0x0E;
 		*(tmp + 2) = 0xC6;
 		*(tmp + 3) = 0x8E;
 
-		return -EADDRNOTAVAIL;	
-	} 
+		return -EADDRNOTAVAIL;
+	}
 	return 0;
 }
 
@@ -1376,7 +1377,7 @@ static int ax88179_get_mac(struct usbnet *dev, u8* buf)
 
 	ax88179_write_cmd(dev, AX_ACCESS_MAC, AX_NODE_ID, ETH_ALEN,
 			  ETH_ALEN, dev->net->dev_addr);
-	
+
 	if (ret < 0) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 34)
 		netdev_err(dev->net, "Failed to write MAC address: %d", ret);
@@ -1638,7 +1639,7 @@ static int ax88179_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 			continue;
 		}
 
-		if (pkt_cnt == 0) {			
+		if (pkt_cnt == 0) {
 			skb->len = pkt_len;
 
 			/* Skip IP alignment psudo header */
@@ -1666,7 +1667,7 @@ static int ax88179_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 		if (ax_skb) {
 #ifndef RX_SKB_COPY
 			ax_skb->len = pkt_len;
-	
+
 			/* Skip IP alignment psudo header */
 			if (NET_IP_ALIGN == 0)
 				skb_pull(ax_skb, 2);
@@ -2107,6 +2108,23 @@ static const struct driver_info samsung_info = {
 	.tx_fixup = ax88179_tx_fixup,
 };
 
+static const struct driver_info belkin_info = {
+	.description = "Belkin USB Ethernet Adapter",
+	.bind	= ax88179_bind,
+	.unbind = ax88179_unbind,
+	.status = ax88179_status,
+	.link_reset = ax88179_link_reset,
+	.reset	= ax88179_reset,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
+	.stop	= ax88179_stop,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
+#else
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
+#endif
+	.rx_fixup = ax88179_rx_fixup,
+	.tx_fixup = ax88179_tx_fixup,
+};
+
 static const struct usb_device_id	products[] = {
 {
 	/* ASIX AX88179 10/100/1000 */
@@ -2132,6 +2150,10 @@ static const struct usb_device_id	products[] = {
 	/* Samsung USB Ethernet Adapter */
 	USB_DEVICE(0x04e8, 0xa100),
 	.driver_info = (unsigned long) &samsung_info,
+}, {
+	/* Belkin B2B128 USB 3.0 Hub + Gigabit Ethernet Adapter */
+	USB_DEVICE(0x050d, 0x0128),
+	.driver_info = (unsigned long) &belkin_info,
 },
 	{ },		/* END */
 };
@@ -2162,4 +2184,3 @@ module_exit(asix_exit);
 MODULE_AUTHOR("David Hollis");
 MODULE_DESCRIPTION("ASIX AX88179_178A based USB 2.0/3.0 Gigabit Ethernet Devices");
 MODULE_LICENSE("GPL");
-
