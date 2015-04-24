@@ -20,7 +20,7 @@ endif
 
 #$(if $(USBNET),,$(error $(KDIR)/$(MDIR)/usbnet.h not found. please refer to readme file for the detailed description))
 
-EXTRA_CFLAGS = -DEXPORT_SYMTAB
+EXTRA_CFLAGS = -DEXPORT_SYMTAB -Wno-error=date-time
 PWD = $(shell pwd)
 DEST = /lib/modules/$(CURRENT)/kernel/$(MDIR)
 
