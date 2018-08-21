@@ -78,14 +78,14 @@ example: insmod ax88179_178a.ko msg_enable=0x00000000
 
 
 bsize=xx (0~24)
-	specifies the the Rx Bulk In Queue size(KB).
+	specifies the Rx Bulk In Queue size(KB).
 	The maximum value for this parameters is 24. 
 	The default value is -1 that will use the driver default setting (18K for USB3.0).
 
 example: insmod ax88179_178a.ko bsize=12
 
 ifg=xxx (0~255)
-	specifies the the Rx Bulk In Queue Inter-Frame-Gap timer. (The timer's unit is 0.25us)
+	specifies the Rx Bulk In Queue Inter-Frame-Gap timer. (The timer's unit is 0.25us)
 	The maximum value for this parameters is 255.
 	The default value is -1 that will use the driver default setting (255 for USB3.0).
 
